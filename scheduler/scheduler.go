@@ -6,7 +6,9 @@ import (
 )
 
 type Scheduler interface {
-	AddWorker(worker worker.Worker)
+	SelectCandidateNodes()
+	Score()
+	Pick()
 }
 
 type SchedulerImpl struct {
