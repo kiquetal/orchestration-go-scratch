@@ -12,3 +12,8 @@ tasks
 - Accepts requets from the user to start and stop tasks
 - Schedules tasks to onto workers
 - Keeps track of the state of all tasks and the machines they are running on
+
+
+#### Scheduler responsibilities
+
+- Determine a set of candidate workes on which task can run
