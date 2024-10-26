@@ -3,15 +3,14 @@ package scheduler
 import (
 	"fmt"
 	"github.com/kiquetal/orchestration-go-scratch/worker"
-	)
+)
 
-interface Scheduler {
-	AddWorker(worker Worker)
+type Scheduler interface {
+	AddWorker(worker worker.Worker)
 }
 
 type SchedulerImpl struct {
-	Workers [] worker.Worker
-
+	Workers []worker.Worker
 }
 
 func (s *SchedulerImpl) AddWorker(worker worker.Worker) {
