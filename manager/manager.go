@@ -8,7 +8,7 @@ import (
 )
 
 type Manager struct {
-	Pending       queue.Queue
+	Pending       *queue.Queue
 	TaskDb        map[string][]*task.Task
 	EventDb       map[string][]*task.TaskEvent
 	Workers       []string
