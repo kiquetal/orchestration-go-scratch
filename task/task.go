@@ -1,9 +1,14 @@
 package task
 
 import (
+	"context"
+	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/client"
+
 	"github.com/docker/go-connections/nat"
 	"github.com/google/uuid"
+	"io"
+	"os"
 	"time"
 )
 
@@ -99,5 +104,24 @@ func NewDocker(c *Config) *Docker {
 func (d *Docker) Run() DockerResult {
 
 	ctx := context.Background()
+	reader, err := d.Client.ImagePull(
+		ctx,
+		d.Config.Image,
+		image.PullOptions{})
+
+	if err != nil {
+		return DockerResult{
+			Error:     err,
+			Action:    "Pull",
+			Container: d.Config.Name,
+			Result:    "Failed",
+		}
+	}
+	io.Copy(os.Stdout, reader)
+	defer reader.Close()
+	return DockerResult{
+		Error:  nil,
+		Action: "Pull",
+	}
 
 }
