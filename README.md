@@ -18,3 +18,23 @@
 - List all containers: `docker ps -a`
 - List all containers with their IDs: `docker ps -aq`
 - Remove specific containers: `docker rm container_id`
+
+```mermaid
+
+sequenceDiagram
+    participant U as User
+    participant M as Manager
+    participant S as Scheduler
+    participant W as Worker
+    participant D as Docker Container
+
+    U->>M: Send request to start/stop task
+    M->>S: Consult for available worker(s)
+    S-->>M: Return available worker(s)
+    M->>W: Assign task
+    W->>D: Run task
+    D-->>W: Update task state
+    W->>M: Report statistics
+    M->>M: Update records of tasks and workers
+
+```
