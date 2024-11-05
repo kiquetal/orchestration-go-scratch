@@ -219,7 +219,7 @@ func (d *Docker) Stop(id string) DockerResult {
 	}
 	err = d.Client.ContainerRemove(ctx, id, container.RemoveOptions{
 		Force:         false,
-		RemoveLinks:   true,
+		RemoveLinks:   false,
 		RemoveVolumes: true,
 	})
 

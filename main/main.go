@@ -70,7 +70,7 @@ func main() {
 		os.Exit(1)
 	}
 	fmt.Printf("stop a container\n")
-	time.Sleep(5 * time.Second)
+	time.Sleep(10 * time.Second)
 	stopContainer(dockerTask, createResult.ContainerId)
 
 }
