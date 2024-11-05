@@ -2,9 +2,10 @@ package task
 
 import (
 	"context"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/client"
-
+	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/docker/go-connections/nat"
 	"github.com/google/uuid"
 	"io"
@@ -119,9 +120,81 @@ func (d *Docker) Run() DockerResult {
 	}
 	io.Copy(os.Stdout, reader)
 	defer reader.Close()
+
+	rp := container.RestartPolicy{
+		Name: container.RestartPolicyMode(d.Config.RestartPolicy),
+	}
+
+	r := container.Resources{
+		Memory:   d.Config.Memory,
+		NanoCPUs: int64(d.Config.Cpu * 1e9),
+	}
+
+	cc := container.Config{
+		Image:        d.Config.Image,
+		Tty:          false,
+		Env:          d.Config.Env,
+		ExposedPorts: d.Config.ExposedPorts,
+	}
+	hc := container.HostConfig{
+		RestartPolicy:   rp,
+		Resources:       r,
+		PublishAllPorts: true,
+	}
+
+	resp, err := d.Client.ContainerCreate(
+		ctx,
+		&cc,
+		&hc,
+		nil,
+		nil, d.Config.Name)
+
+	if err != nil {
+		return DockerResult{
+			Error:     err,
+			Action:    "Create",
+			Container: d.Config.Name,
+			Result:    "Failed",
+		}
+	}
+
+	err = d.Client.ContainerStart(
+		ctx,
+		resp.ID,
+		container.StartOptions{})
+
+	if err != nil {
+		return DockerResult{
+			Error:     err,
+			Action:    "Start",
+			Container: d.Config.Name,
+			Result:    "Failed",
+		}
+	}
+
+	out, err := d.Client.ContainerLogs(
+		ctx,
+		resp.ID,
+		container.LogsOptions{
+			ShowStderr: true,
+			ShowStdout: true,
+		})
+
+	if err != nil {
+		return DockerResult{
+			Error:     err,
+			Action:    "Logs",
+			Container: d.Config.Name,
+			Result:    "Failed",
+		}
+
+	}
+	stdcopy.StdCopy(os.Stdout, os.Stderr, out)
+
 	return DockerResult{
-		Error:  nil,
-		Action: "Pull",
+		Container: resp.ID,
+		Action:    "Start",
+		Result:    "Success",
 	}
 
 }
