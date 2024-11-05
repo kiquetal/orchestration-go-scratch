@@ -2,6 +2,7 @@ package task
 
 import (
 	"context"
+	"fmt"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/client"
@@ -9,6 +10,7 @@ import (
 	"github.com/docker/go-connections/nat"
 	"github.com/google/uuid"
 	"io"
+	"log"
 	"os"
 	"time"
 )
@@ -77,10 +79,11 @@ type Config struct {
 }
 
 type DockerResult struct {
-	Error     error
-	Action    string
-	Container string
-	Result    string
+	Error       error
+	Action      string
+	Container   string
+	Result      string
+	ContainerId string
 }
 
 func (t *Task) NewConfig() *Config {
@@ -149,6 +152,7 @@ func (d *Docker) Run() DockerResult {
 		nil,
 		nil, d.Config.Name)
 
+	fmt.Printf("The id is %s\n", resp.ID)
 	if err != nil {
 		return DockerResult{
 			Error:     err,
@@ -192,8 +196,45 @@ func (d *Docker) Run() DockerResult {
 	stdcopy.StdCopy(os.Stdout, os.Stderr, out)
 
 	return DockerResult{
-		Container: resp.ID,
-		Action:    "Start",
+		Container:   resp.ID,
+		Action:      "Start",
+		Result:      "Success",
+		ContainerId: resp.ID,
+	}
+
+}
+
+func (d *Docker) Stop(id string) DockerResult {
+	log.Printf("Stop container %s", id)
+	ctx := context.Background()
+	err := d.Client.ContainerStop(ctx, id, container.StopOptions{})
+	if err != nil {
+		log.Printf("Error stopping container %s: %s", id, err)
+		return DockerResult{
+			Error:     err,
+			Action:    "Stop",
+			Container: id,
+			Result:    "Failed",
+		}
+	}
+	err = d.Client.ContainerRemove(ctx, id, container.RemoveOptions{
+		Force:         false,
+		RemoveLinks:   true,
+		RemoveVolumes: true,
+	})
+
+	if err != nil {
+		log.Printf("Error removing container %s: %s", id, err)
+		return DockerResult{
+			Error:     err,
+			Action:    "Remove",
+			Container: id,
+			Result:    "Failed",
+		}
+	}
+	return DockerResult{
+		Container: id,
+		Action:    "Stop",
 		Result:    "Success",
 	}
 
