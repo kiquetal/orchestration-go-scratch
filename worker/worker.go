@@ -5,6 +5,7 @@ import (
 	"github.com/golang-collections/collections/queue"
 	"github.com/google/uuid"
 	"github.com/kiquetal/orchestration-go-scratch/task"
+	"time"
 )
 
 type Worker struct {
@@ -34,7 +35,17 @@ func (w *Worker) StartTask() {
 	}
 }
 
-func (w *Worker) StopTask(t *task.Task) {
-	delete(w.Db, t.ID)
-	fmt.Println("Task Stopped: ", t.Name)
+func (w *Worker) StopTask(t task.Task) task.DockerResult {
+	config := t.NewConfig()
+	d := task.NewDocker(config)
+	result := d.Stop(t.ContainerID)
+	if result.Error != nil {
+		fmt.Printf("Error stopping task: %s\n", result.Error)
+	}
+	t.FinishTime = time.Now().UTC()
+	t.State = task.Completed
+	w.Db[t.ID] = &t
+	fmt.Printf("Stopped and removed container %v, for task %v\n", t.ContainerID, t.Name)
+
+	return result
 }

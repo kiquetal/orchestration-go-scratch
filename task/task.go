@@ -37,6 +37,7 @@ type Task struct {
 	PortBindings  map[string]string
 	RestartPolicy string
 	StartTime     time.Time
+	ContainerID   string
 	FinishTime    time.Time
 }
 
@@ -76,6 +77,7 @@ type Config struct {
 	Env []string
 	// RestartPolicy for the container ["", "always", "unless-stopped", "on-failure"]
 	RestartPolicy string
+	ContainerID   string
 }
 
 type DockerResult struct {
@@ -94,6 +96,7 @@ func (t *Task) NewConfig() *Config {
 		Cpu:           t.Cpu,
 		Memory:        t.Memory,
 		Disk:          t.Disk,
+		ContainerID:   t.ContainerID,
 		RestartPolicy: t.RestartPolicy,
 	}
 }
