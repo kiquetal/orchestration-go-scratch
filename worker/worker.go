@@ -21,8 +21,50 @@ func (w *Worker) CollectStats() {
 	fmt.Println("Queue Length: ", w.Queue.Len())
 }
 
-func (w *Worker) RunTask(t *task.Task) {
+func (w *Worker) RunTask() task.DockerResult {
 
+	if w.Queue.Len() == 0 {
+		fmt.Println("No tasks in queue")
+		return task.DockerResult{}
+	}
+	t := w.Queue.Dequeue().(*task.Task)
+
+	taskInDb, ok := w.Db[t.ID]
+	if !ok {
+		taskInDb = t
+		w.Db[t.ID] = taskInDb
+	}
+	var result task.DockerResult
+	if ValidStateTransition(taskInDb.State, t.State) {
+		switch t.State {
+		case task.Scheduled:
+			result = w.StartTask(*taskInDb)
+		case task.Completed:
+			result = w.StopTask(*taskInDb)
+		default:
+			fmt.Println("Invalid state transition")
+		}
+
+	} else {
+		fmt.Println("Invalid state transition")
+		result.Error = fmt.Errorf("Invalid state transition")
+	}
+	return result
+
+}
+
+func Contains(states []task.State, s task.State) bool {
+	for _, state := range states {
+		if state == s {
+			return true
+		}
+	}
+	return false
+}
+
+func ValidStateTransition(from task.State, to task.State) bool {
+
+	return Contains(task.TransitionMapState[from], to)
 }
 
 func (w *Worker) AddTask(t task.Task) {

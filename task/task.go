@@ -80,7 +80,7 @@ type Config struct {
 	ContainerID   string
 }
 
-var transitionMapState = map[State][]State{
+var TransitionMapState = map[State][]State{
 	Pending:   {Scheduled},
 	Scheduled: {Running, Failed, Scheduled},
 	Running:   {Completed, Failed, Running},
