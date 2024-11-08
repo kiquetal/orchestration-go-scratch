@@ -80,6 +80,14 @@ type Config struct {
 	ContainerID   string
 }
 
+var transitionMapState = map[State][]State{
+	Pending:   {Scheduled},
+	Scheduled: {Running, Failed, Scheduled},
+	Running:   {Completed, Failed, Running},
+	Completed: {},
+	Failed:    {},
+}
+
 type DockerResult struct {
 	Error       error
 	Action      string

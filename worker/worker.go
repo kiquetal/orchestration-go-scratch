@@ -22,10 +22,13 @@ func (w *Worker) CollectStats() {
 }
 
 func (w *Worker) RunTask(t *task.Task) {
-	w.Queue.Enqueue(t)
-	w.TaskCount++
+
 }
 
+func (w *Worker) AddTask(t task.Task) {
+	w.Queue.Enqueue(&t)
+
+}
 func (w *Worker) StartTask(t task.Task) task.DockerResult {
 	t.StartTime = time.Now().UTC()
 	config := t.NewConfig()
