@@ -26,13 +26,22 @@ func (w *Worker) RunTask(t *task.Task) {
 	w.TaskCount++
 }
 
-func (w *Worker) StartTask() {
-	if w.Queue.Len() > 0 {
-		t := w.Queue.Dequeue().(*task.Task)
-		w.TaskCount--
-		w.Db[t.ID] = t
-		fmt.Println("Task Started: ", t.Name)
+func (w *Worker) StartTask(t task.Task) task.DockerResult {
+	t.StartTime = time.Now().UTC()
+	config := t.NewConfig()
+	d := task.NewDocker(config)
+	result := d.Run()
+	if result.Error != nil {
+		fmt.Printf("Error running task: %s\n", result.Error)
+		t.State = task.Failed
+		w.Db[t.ID] = &t
+		return result
 	}
+	t.ContainerID = result.ContainerId
+	t.State = task.Running
+	w.Db[t.ID] = &t
+	fmt.Printf("Started container %v, for task %v\n", t.ContainerID, t.Name)
+	return result
 }
 
 func (w *Worker) StopTask(t task.Task) task.DockerResult {
