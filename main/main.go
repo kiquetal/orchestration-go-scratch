@@ -36,7 +36,7 @@ func main() {
 	taskE.ContainerID = result.Container
 	fmt.Println("Task is running with container id: ", taskE.ContainerID)
 	fmt.Println("Sleep 7 seconds")
-	time.Sleep(7 * time.Second)
+	time.Sleep(30 * time.Second)
 	taskE.State = task.Completed
 	w.AddTask(*taskE)
 	result = w.RunTask()
