@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/docker/docker/api/types"
+	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
 	"github.com/kiquetal/orchestration-go-scratch/task"
 	"log"
 	"net/http"
@@ -37,9 +39,25 @@ func (a *Api) StartTaskHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *Api) StopTaskHandler(w http.ResponseWriter, r *http.Request) {
-	// Stop a task
-}
+	// obtain for the url param
+	taskId := chi.URLParam(r, "taskId")
+	if taskId == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	tId, _ := uuid.Parse(taskId)
+	t, ok := a.Worker.Db[tId]
+	if !ok {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	taskCopy := *t
+	taskCopy.State = task.Completed
+	a.Worker.AddTask(taskCopy)
+	log.Printf("Added task %s to worker %s", tId, a.Worker.Name)
+	w.WriteHeader(http.StatusNoContent)
 
+}
 func (a *Api) GetTaskHandler(w http.ResponseWriter, r *http.Request) {
 	// Get a task
 	w.Header().Set("Content-Type", "application/json")
