@@ -16,8 +16,17 @@ import (
 func main() {
 
 	host := os.Getenv("ORCHESTRATION_HOST")
-	port, _ := strconv.Atoi(os.Getenv("ORCHESTRATION_PORT"))
-
+	if host == "" {
+		host = "localhost"
+	}
+	port := os.Getenv("ORCHESTRATION_PORT")
+	if port == "" {
+		port = "8080"
+	}
+	portInt, err := strconv.Atoi(port)
+	if err != nil {
+		log.Fatalf("Failed to convert port to integer: %v", err)
+	}
 	fmt.Println("Starting the orchestration system")
 	w := worker.Worker{
 		Name:  "worker-1",
@@ -27,14 +36,14 @@ func main() {
 	api := worker.Api{
 		Worker:  &w,
 		Address: host,
-		Port:    port,
+		Port:    portInt,
 	}
-	go runTask(&w)
+	go runTasks(&w)
 	api.Start()
 
 }
 
-func runTask(w *worker.Worker) {
+func runTasks(w *worker.Worker) {
 	for {
 		if w.Queue.Len() != 0 {
 			result := w.RunTask()

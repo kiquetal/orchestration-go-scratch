@@ -1,7 +1,10 @@
 package worker
 
 import (
+	"fmt"
 	"github.com/go-chi/chi/v5"
+	"log"
+	"net/http"
 )
 
 type Api struct {
@@ -23,5 +26,7 @@ func (a *Api) initRouter() {
 }
 
 func (a *Api) Start() {
+	log.Printf("Starting worker %s on %s:%d", a.Worker.Name, a.Address, a.Port)
 	a.initRouter()
+	http.ListenAndServe(fmt.Sprintf("%s:%d", a.Address, a.Port), a.Router)
 }
