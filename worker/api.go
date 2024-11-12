@@ -21,3 +21,7 @@ func (a *Api) initRouter() {
 		})
 	})
 }
+
+func (a *Api) Start() {
+	a.initRouter()
+}

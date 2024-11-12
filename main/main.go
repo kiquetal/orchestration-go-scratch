@@ -7,44 +7,47 @@ import (
 	"github.com/google/uuid"
 	"github.com/kiquetal/orchestration-go-scratch/task"
 	"github.com/kiquetal/orchestration-go-scratch/worker"
+	"log"
+	"os"
+	"strconv"
 	"time"
 )
 
 func main() {
 
-	m := make(map[uuid.UUID]*task.Task)
-	taskE := &task.Task{
-		ID:    uuid.New(),
-		Name:  "test-task-1",
-		State: task.Scheduled,
-		Cpu:   0.5,
-		Image: "strm/helloworld-http",
-	}
-	m[taskE.ID] = taskE
+	host := os.Getenv("ORCHESTRATION_HOST")
+	port, _ := strconv.Atoi(os.Getenv("ORCHESTRATION_PORT"))
 
+	fmt.Println("Starting the orchestration system")
 	w := worker.Worker{
 		Name:  "worker-1",
 		Queue: queue.New(),
-		Db:    m,
+		Db:    make(map[uuid.UUID]*task.Task),
 	}
-	w.AddTask(*taskE)
-	result := w.RunTask()
-	fmt.Println(result)
-	if result.Error != nil {
-		panic(result.Error)
+	api := worker.Api{
+		Worker:  &w,
+		Address: host,
+		Port:    port,
 	}
-	taskE.ContainerID = result.Container
-	fmt.Println("Task is running with container id: ", taskE.ContainerID)
-	fmt.Println("Sleep 7 seconds")
-	time.Sleep(30 * time.Second)
-	taskE.State = task.Completed
-	w.AddTask(*taskE)
-	result = w.RunTask()
-	fmt.Println(result)
-	if result.Error != nil {
-		panic(result.Error)
+	go runTask(&w)
+	api.Start()
+
+}
+
+func runTask(w *worker.Worker) {
+	for {
+		if w.Queue.Len() != 0 {
+			result := w.RunTask()
+			if result.Error != nil {
+				fmt.Println("Error running task: ", result.Error)
+			}
+
+		} else {
+			fmt.Println("No tasks in queue")
+		}
+		log.Printf("Worker %s is running %d tasks", w.Name, w.Queue.Len())
+		time.Sleep(10 * time.Second)
 	}
-	fmt.Println("Task is stopped")
 }
 
 func createContainer() (*task.Docker, *task.DockerResult) {
