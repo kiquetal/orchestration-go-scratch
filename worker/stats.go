@@ -44,3 +44,14 @@ func (s *Stats) DiskFree() uint64 {
 func (s *Stats) DiskUsedPercent() float64 {
 	return float64(s.DiskUsed()) / float64(s.DiskTotal()) * 100
 }
+
+func (s *Stats) CpuUsage() float64 {
+	idle := s.CpuStats.Idle + s.CpuStats.IOWait
+	nonIdle := s.CpuStats.User + s.CpuStats.Nice + s.CpuStats.System + s.CpuStats.IRQ + s.CpuStats.SoftIRQ + s.CpuStats.Steal
+	total := idle + nonIdle
+
+	if total == 0 {
+		return 0.00
+	}
+	return (float64(total) - float64(idle)/float64(total))
+}
