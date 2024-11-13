@@ -12,6 +12,7 @@ type Worker struct {
 	Name      string
 	Queue     *queue.Queue
 	Db        map[uuid.UUID]*task.Task
+	Stats     *Stats
 	TaskCount int
 }
 
