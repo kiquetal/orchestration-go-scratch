@@ -39,6 +39,7 @@ func main() {
 		Port:    portInt,
 	}
 	go runTasks(&w)
+	go w.CollectStats()
 	api.Start()
 
 }
