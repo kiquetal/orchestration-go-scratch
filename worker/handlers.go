@@ -70,3 +70,15 @@ func (a *Api) GetTaskHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 }
+
+func (a *Api) GetStatsHandler(w http.ResponseWriter, r *http.Request) {
+	// Get stats
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	err := json.NewEncoder(w).Encode(a.Worker.Stats)
+	if err != nil {
+		log.Printf("Failed to encode stats: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
