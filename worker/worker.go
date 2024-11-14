@@ -5,6 +5,7 @@ import (
 	"github.com/golang-collections/collections/queue"
 	"github.com/google/uuid"
 	"github.com/kiquetal/orchestration-go-scratch/task"
+	"log"
 	"time"
 )
 
@@ -17,9 +18,12 @@ type Worker struct {
 }
 
 func (w *Worker) CollectStats() {
-	fmt.Println("Worker: ", w.Name)
-	fmt.Println("Task Count: ", w.TaskCount)
-	fmt.Println("Queue Length: ", w.Queue.Len())
+	for {
+		log.Printf("Collecting stats")
+		w.Stats = GetStats()
+		w.Stats.TaskCount = w.TaskCount
+		time.Sleep(15 * time.Second)
+	}
 }
 
 func (w *Worker) RunTask() task.DockerResult {
