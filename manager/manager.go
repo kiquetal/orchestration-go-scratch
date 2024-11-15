@@ -5,27 +5,45 @@ import (
 	"github.com/golang-collections/collections/queue"
 	"github.com/google/uuid"
 	"github.com/kiquetal/orchestration-go-scratch/task"
+	"log"
 )
 
 type Manager struct {
 	Pending       *queue.Queue
 	TaskDb        map[string][]*task.Task
-	EventDb       map[string][]*task.TaskEvent
+	EventDb       map[uuid.UUID]*task.TaskEvent
 	Workers       []string
 	WorkerTasks   map[string][]uuid.UUID
 	TaskWorkerMap map[uuid.UUID]string
+	LastWorker    int
 }
 
 func (m *Manager) SelectWorker() string {
-	// Select a worker based on some strategy
-	return m.Workers[0]
+	var newWorker int
+
+	if m.LastWorker+1 < len(m.Workers) {
+		newWorker = m.LastWorker + 1
+		m.LastWorker++
+	} else {
+		newWorker = 0
+		m.LastWorker = 0
+
+	}
+	return m.Workers[newWorker]
+}
+
+func (m *Manager) SendWork() {
+	if m.Pending.Len() > 0 {
+		worker := m.SelectWorker()
+		e := m.Pending.Dequeue().(*task.TaskEvent)
+		t := e.Task
+		log.Printf("Sending task %s to worker %s", t.ID, worker)
+		m.EventDb[e.ID] = e
+
+	}
 }
 
 func (m *Manager) UpdateTask() {
 	// Update task state
 	fmt.Println("Task Updated")
-}
-
-func (m *Manager) SendWork() {
-	fmt.Println("Work Sent")
 }
