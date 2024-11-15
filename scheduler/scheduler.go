@@ -20,3 +20,7 @@ func (s *SchedulerImpl) AddWorker(worker worker.Worker) {
 	s.Workers = append(s.Workers, worker)
 
 }
+
+func (s *SchedulerImpl) SelectCandidateNodes() {
+	fmt.Println("Selecting candidate nodes")
+}
