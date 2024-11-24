@@ -69,9 +69,17 @@ func (m *Manager) SendWork() {
 				return
 			}
 			log.Printf("Error response from selectedWorker: %s", e.HTTPStatusCode, e.Message)
-
+			return
 		}
-
+		t = task.Task{}
+		err = d.Decode(&t)
+		if err != nil {
+			log.Printf("Error decoding task response: %s", err)
+			return
+		}
+		log.Print("%#v\n", t)
+	} else {
+		log.Println("No tasks to send")
 	}
 }
 
