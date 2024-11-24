@@ -52,7 +52,7 @@ func (m *Manager) SendWork() {
 			log.Printf("Error marshalling task event: %s", err)
 		}
 
-		url := fmt.Sprintf("https://%s/task", selectedWorker)
+		url := fmt.Sprintf("https://%s/tasks", selectedWorker)
 		resp, err := http.Post(url, "application/json", bytes.NewBuffer(data))
 		if err != nil {
 			log.Printf("Error sending task to selectedWorker: %s", err)
