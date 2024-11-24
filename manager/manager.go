@@ -1,11 +1,15 @@
 package manager
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/golang-collections/collections/queue"
 	"github.com/google/uuid"
 	"github.com/kiquetal/orchestration-go-scratch/task"
+	"github.com/kiquetal/orchestration-go-scratch/worker"
 	"log"
+	"net/http"
 )
 
 type Manager struct {
@@ -34,15 +38,40 @@ func (m *Manager) SelectWorker() string {
 
 func (m *Manager) SendWork() {
 	if m.Pending.Len() > 0 {
-		worker := m.SelectWorker()
+		selectedWorker := m.SelectWorker()
 		e := m.Pending.Dequeue().(*task.TaskEvent)
 		t := e.Task
-		log.Printf("Sending task %s to worker %s", t.ID, worker)
+		log.Printf("Sending task %s to selectedWorker %s", t.ID, selectedWorker)
 		m.EventDb[e.ID] = e
-		m.WorkerTasks[worker] = append(m.WorkerTasks[worker], e.ID)
-		m.TaskWorkerMap[e.ID] = worker
+		m.WorkerTasks[selectedWorker] = append(m.WorkerTasks[selectedWorker], e.ID)
+		m.TaskWorkerMap[e.ID] = selectedWorker
 		t.State = task.Scheduled
 		m.TaskDb[t.ID] = &t
+		data, err := json.Marshal(e)
+		if err != nil {
+			log.Printf("Error marshalling task event: %s", err)
+		}
+
+		url := fmt.Sprintf("https://%s/task", selectedWorker)
+		resp, err := http.Post(url, "application/json", bytes.NewBuffer(data))
+		if err != nil {
+			log.Printf("Error sending task to selectedWorker: %s", err)
+			m.Pending.Enqueue(e)
+			return
+
+		}
+		d := json.NewDecoder(resp.Body)
+		if resp.StatusCode != http.StatusCreated {
+			e := worker.ErrResponse{}
+			err := d.Decode(&e)
+			if err != nil {
+				log.Printf("Error decoding error response: %s", err)
+				return
+			}
+			log.Printf("Error response from selectedWorker: %s", e.HTTPStatusCode, e.Message)
+
+		}
+
 	}
 }
 

@@ -14,6 +14,11 @@ type Api struct {
 	Router  *chi.Mux
 }
 
+type ErrResponse struct {
+	HTTPStatusCode int    `json:"status"`
+	Message        string `json:"message"`
+}
+
 func (a *Api) initRouter() {
 	a.Router = chi.NewRouter()
 	a.Router.Route("/tasks", func(r chi.Router) {
