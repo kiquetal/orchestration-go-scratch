@@ -10,7 +10,7 @@ import (
 
 type Manager struct {
 	Pending       *queue.Queue
-	TaskDb        map[string][]*task.Task
+	TaskDb        map[uuid.UUID]*task.Task
 	EventDb       map[uuid.UUID]*task.TaskEvent
 	Workers       []string
 	WorkerTasks   map[string][]uuid.UUID
@@ -39,7 +39,10 @@ func (m *Manager) SendWork() {
 		t := e.Task
 		log.Printf("Sending task %s to worker %s", t.ID, worker)
 		m.EventDb[e.ID] = e
-
+		m.WorkerTasks[worker] = append(m.WorkerTasks[worker], e.ID)
+		m.TaskWorkerMap[e.ID] = worker
+		t.State = task.Scheduled
+		m.TaskDb[t.ID] = &t
 	}
 }
 
