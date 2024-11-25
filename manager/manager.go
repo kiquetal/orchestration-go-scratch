@@ -83,7 +83,23 @@ func (m *Manager) SendWork() {
 	}
 }
 
-func (m *Manager) UpdateTask() {
-	// Update task state
-	fmt.Println("Task Updated")
+func (m *Manager) UpdateTasks() {
+	for _, w := range m.Workers {
+		log.Printf("Checking w %v for tasks", w)
+		url := fmt.Sprintf("https://%s/tasks", w)
+		resp, err := http.Get(url)
+		if err != nil {
+			log.Printf("Error getting tasks from w: %s", err)
+		}
+		if resp.StatusCode != http.StatusOK {
+			log.Printf("Error getting tasks from w: %d", resp.StatusCode)
+
+		}
+		d := json.NewDecoder(resp.Body)
+		var tasks []task.Task
+		err = d.Decode(&tasks)
+		if err != nil {
+			log.Printf("Error decoding tasks from w: %s", err)
+		}
+	}
 }
