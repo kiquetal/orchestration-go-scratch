@@ -101,5 +101,24 @@ func (m *Manager) UpdateTasks() {
 		if err != nil {
 			log.Printf("Error decoding tasks from w: %s", err)
 		}
+
+		for _, t := range tasks {
+			log.Printf("Attempt to update task %s", t.ID)
+			taskInDb, ok := m.TaskDb[t.ID]
+			if !ok {
+				log.Printf("Task %s not found in db", t.ID)
+				return
+			}
+			if taskInDb.State != t.State {
+				log.Printf("Task %s state changed from %s to %s", t.ID, taskInDb.State, t.State)
+				m.TaskDb[t.ID].State = t.State
+			}
+
+			m.TaskDb[t.ID].StartTime = t.StartTime
+			m.TaskDb[t.ID].FinishTime = t.FinishTime
+			m.TaskDb[t.ID].ContainerID = t.ContainerID
+
+		}
+
 	}
 }
