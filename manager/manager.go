@@ -52,7 +52,8 @@ func (m *Manager) SendWork() {
 			log.Printf("Error marshalling task event: %s", err)
 		}
 
-		url := fmt.Sprintf("https://%s/tasks", selectedWorker)
+		url := fmt.Sprintf("http://%s/tasks", selectedWorker)
+		fmt.Printf("sending the taskevent to to worker %s, %+v\n", selectedWorker, e)
 		resp, err := http.Post(url, "application/json", bytes.NewBuffer(data))
 		if err != nil {
 			log.Printf("Error sending task to selectedWorker: %s", err)
@@ -86,7 +87,7 @@ func (m *Manager) SendWork() {
 func (m *Manager) UpdateTasks() {
 	for _, w := range m.Workers {
 		log.Printf("Checking w %v for tasks", w)
-		url := fmt.Sprintf("https://%s/tasks", w)
+		url := fmt.Sprintf("http://%s/tasks", w)
 		resp, err := http.Get(url)
 		if err != nil {
 			log.Printf("Error getting tasks from w: %s", err)
