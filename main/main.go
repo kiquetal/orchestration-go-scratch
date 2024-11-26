@@ -89,7 +89,7 @@ func runTasks(w *worker.Worker) {
 		} else {
 			fmt.Println("No tasks in queue")
 		}
-		log.Printf("Worker %s is running %d tasks", w.Name, w.Queue.Len())
+		log.Printf("Worker %s have pendind %d tasks", w.Name, w.Queue.Len())
 		time.Sleep(10 * time.Second)
 	}
 }
